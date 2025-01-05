@@ -1,0 +1,82 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: SAM template for Nangie Backend API
+
+Parameters:
+  StageName:
+    Type: String
+    Default: prod
+    Description: Stage name for the API Gateway deployment
+
+  GoogleSheetsSecretName:
+    Type: String
+    Description: Name of the secret in AWS Secrets Manager containing Google Sheets credentials
+
+  SpreadsheetId:
+    Type: String
+    Description: Google Sheets Spreadsheet ID
+
+  SheetName:
+    Type: String
+    Default: Sheet1
+    Description: Google Sheets Sheet Name
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 256
+    Runtime: python3.9
+    Environment:
+      Variables:
+        GOOGLE_SHEETS_SECRET_NAME: !Ref GoogleSheetsSecretName
+        SPREADSHEET_ID: !Ref SpreadsheetId
+        SHEET_NAME: !Ref SheetName
+
+Resources:
+  NangieBackendFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: app.main.handler
+      Layers:
+        - !Ref DependenciesLayer
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${GoogleSheetsSecretName}-*'
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+            RestApiId: !Ref NangieBackendApi
+
+  NangieBackendApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref StageName
+      Cors:
+        AllowMethods: "'*'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'https://nangie.framer.website'"
+      Auth:
+        DefaultAuthorizer: NONE
+
+  DependenciesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: nangie-backend-dependencies
+      Description: Dependencies for Nangie Backend
+      ContentUri: package/
+      CompatibleRuntimes:
+        - python3.9
+      RetentionPolicy: Retain
+
+Outputs:
+  ApiEndpoint:
+    Description: API Gateway endpoint URL
+    Value: !Sub https://${NangieBackendApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/

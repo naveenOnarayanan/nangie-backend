@@ -39,6 +39,8 @@ ENV/
 
 # AWS
 .aws/
+.aws-sam/
+samconfig.toml
 
 # Logs
 *.log
