@@ -30,9 +30,7 @@ sam deploy \
   --stack-name nangie-backend \
   --capabilities CAPABILITY_IAM \
   --parameter-overrides \
-    GoogleSheetsSecretName=${GOOGLE_SHEETS_SECRET_NAME} \
-    SpreadsheetId=${SPREADSHEET_ID} \
-    SheetName=${SHEET_NAME} \
+    "ParameterKey=GoogleSheetsSecretName,ParameterValue=${GOOGLE_SHEETS_SECRET_NAME} ParameterKey=SpreadsheetId,ParameterValue=${SPREADSHEET_ID} ParameterKey=SheetName,ParameterValue=${SHEET_NAME}" \
   --no-confirm-changeset \
   --no-fail-on-empty-changeset
 

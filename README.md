@@ -18,6 +18,34 @@ Before deploying, ensure you have:
 3. Python 3.9 installed
 4. Google Sheets API credentials stored in AWS Secrets Manager
 
+## Setting up AWS Secrets Manager
+
+Before deploying, you need to store your Google Sheets API credentials in AWS Secrets Manager:
+
+1. Go to AWS Console > Secrets Manager
+2. Click "Store a new secret"
+3. Choose "Other type of secret"
+4. Add your Google Sheets service account credentials as a JSON:
+   ```json
+   {
+     "type": "service_account",
+     "project_id": "your-project-id",
+     "private_key_id": "your-private-key-id",
+     "private_key": "your-private-key",
+     "client_email": "your-service-account-email",
+     "client_id": "your-client-id",
+     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+     "token_uri": "https://oauth2.googleapis.com/token",
+     "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+     "client_x509_cert_url": "your-cert-url"
+   }
+   ```
+5. Click "Next"
+6. Give your secret a name (e.g., "nangie-google-sheets-creds")
+7. Complete the secret creation
+
+This secret name will be used as the `GOOGLE_SHEETS_SECRET_NAME` environment variable during deployment.
+
 ## Environment Variables
 
 Before deploying, make sure you have the following environment variables set:
