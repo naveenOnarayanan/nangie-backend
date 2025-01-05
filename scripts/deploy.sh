@@ -17,7 +17,7 @@ cd $REPO_ROOT
 echo "Creating Lambda layer package..."
 rm -rf package/
 mkdir -p package/python
-pip install -r requirements.txt --target package/python
+pip3 install -r requirements.txt --target package/python
 
 # Build SAM application
 echo "Building SAM application..."
