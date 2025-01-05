@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - GOOGLE_SHEETS_CREDENTIALS=${GOOGLE_SHEETS_CREDENTIALS}
+      - SPREADSHEET_ID=${SPREADSHEET_ID}
+      - SHEET_NAME=${SHEET_NAME}
+    volumes:
+      - .:/app
+    restart: unless-stopped

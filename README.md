@@ -1,10 +1,93 @@
 # Nangie Backend
 
-A FastAPI application deployed on AWS Lambda that integrates with Google Sheets.
+A FastAPI application that integrates with Google Sheets. Can be deployed either on AWS Lambda or using buildpacks on platforms like Heroku, Google Cloud Run, or similar services.
 
-## Prerequisites
+## Deployment Options
 
-Before deploying, ensure you have:
+This application supports three deployment methods:
+1. AWS Lambda deployment (original method)
+2. Buildpack deployment
+3. Docker deployment
+
+Choose the deployment method that best suits your needs.
+
+## Docker Deployment
+
+### Prerequisites for Docker Deployment
+
+Before deploying with Docker, ensure you have:
+1. Docker installed on your system
+2. Google Sheets API credentials
+3. Access to a container registry (optional, for production deployment)
+
+### Building and Running with Docker
+
+1. Build the Docker image:
+```bash
+docker build -t nangie-backend .
+```
+
+2. Run the container:
+```bash
+docker run -p 8000:8000 \
+  -e GOOGLE_SHEETS_CREDENTIALS='{"type": "service_account", ...}' \
+  -e SPREADSHEET_ID='your_spreadsheet_id' \
+  -e SHEET_NAME='Sheet1' \
+  nangie-backend
+```
+
+### Docker Compose (Optional)
+
+Create a `docker-compose.yml` file for easier development:
+```yaml
+version: '3.8'
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - GOOGLE_SHEETS_CREDENTIALS={"type": "service_account", ...}
+      - SPREADSHEET_ID=your_spreadsheet_id
+      - SHEET_NAME=Sheet1
+```
+
+Then run:
+```bash
+docker-compose up
+```
+
+## Buildpack Deployment
+
+### Prerequisites for Buildpack Deployment
+
+Before deploying with buildpacks, ensure you have:
+1. A platform that supports buildpacks (Heroku, Google Cloud Run, etc.)
+2. Google Sheets API credentials
+3. Python 3.11 (specified in runtime.txt)
+
+### Environment Variables for Buildpack
+
+Set the following environment variables on your deployment platform:
+```bash
+GOOGLE_SHEETS_CREDENTIALS={"type": "service_account", ...}  # Your service account JSON
+SPREADSHEET_ID=your_spreadsheet_id
+SHEET_NAME=Sheet1  # Optional, defaults to Sheet1
+PORT=8000  # Optional, usually set by the platform
+```
+
+### Files for Buildpack Deployment
+
+The following files are used for buildpack deployment:
+- `Procfile`: Defines the web process
+- `runtime.txt`: Specifies Python version
+- `requirements.txt`: Lists Python dependencies
+
+## AWS Lambda Deployment
+
+### Prerequisites for AWS Lambda
+
+Before deploying to AWS Lambda, ensure you have:
 
 1. AWS CLI installed and configured with your credentials
 2. AWS SAM CLI installed:
