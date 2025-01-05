@@ -1,50 +1,35 @@
 from fastapi import FastAPI, HTTPException
 from typing import Dict, Optional
-import boto3
-import json
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import os
 from pydantic import BaseModel, ConfigDict
-from mangum import Mangum
+from dotenv import load_dotenv
+import json
+from waitress import serve
+
+# Load environment variables
+load_dotenv()
 
 app = FastAPI()
-handler = Mangum(app)  # AWS Lambda handler
 
 class UserUpdate(BaseModel):
     """Model for user update data"""
     model_config = ConfigDict(extra='allow')  # Allow extra fields
     data: Dict[str, str]
 
-def get_secrets() -> Dict[str, str]:
-    """Retrieve Google Sheets API credentials from AWS Secrets Manager"""
-    session = boto3.session.Session()
-    client = session.client(
-        service_name='secretsmanager',
-        region_name=os.getenv('AWS_REGION', 'us-east-1')
-    )
-    
-    try:
-        secret_value = client.get_secret_value(
-            SecretId=os.getenv('GOOGLE_SHEETS_SECRET_NAME')
-        )
-        return json.loads(secret_value['SecretString'])
-    except Exception as e:
-        print(f"Error retrieving secret: {str(e)}")
-        secret_value = os.environ.get('GOOGLE_SHEETS_API_KEY')
-        if secret_value:
-            return json.loads(secret_value)
-    
-    raise HTTPException(status_code=500, detail="Could not retrieve credentials")
-
 def get_sheets_service():
     """Initialize Google Sheets API service"""
-    credentials = get_secrets()
-    creds = service_account.Credentials.from_service_account_info(
-        credentials,
-        scopes=['https://www.googleapis.com/auth/spreadsheets']
-    )
-    return build('sheets', 'v4', credentials=creds)
+    try:
+        credentials = json.loads(os.getenv('GOOGLE_SHEETS_CREDENTIALS', '{}'))
+        creds = service_account.Credentials.from_service_account_info(
+            credentials,
+            scopes=['https://www.googleapis.com/auth/spreadsheets']
+        )
+        return build('sheets', 'v4', credentials=creds)
+    except Exception as e:
+        print(f"Error initializing sheets service: {str(e)}")
+        raise HTTPException(status_code=500, detail="Could not initialize Google Sheets service")
 
 def find_user_row(sheet_service, spreadsheet_id: str, user_id: str) -> Optional[int]:
     """Find user row in spreadsheet by ID"""
@@ -65,6 +50,8 @@ async def get_user(user_id: str) -> Dict[str, str]:
     """Get user information from Google Sheets"""
     service = get_sheets_service()
     spreadsheet_id = os.getenv('SPREADSHEET_ID')
+    if not spreadsheet_id:
+        raise HTTPException(status_code=500, detail="Spreadsheet ID not configured")
     
     row_num = find_user_row(service, spreadsheet_id, user_id)
     if not row_num:
@@ -86,6 +73,8 @@ async def update_user(user_id: str, update_data: UserUpdate) -> Dict[str, str]:
     """Update user information in Google Sheets"""
     service = get_sheets_service()
     spreadsheet_id = os.getenv('SPREADSHEET_ID')
+    if not spreadsheet_id:
+        raise HTTPException(status_code=500, detail="Spreadsheet ID not configured")
     
     row_num = find_user_row(service, spreadsheet_id, user_id)
     if not row_num:
@@ -118,3 +107,9 @@ async def update_user(user_id: str, update_data: UserUpdate) -> Dict[str, str]:
     ).execute()
     
     return {"message": "User updated successfully"}
+
+if __name__ == "__main__":
+    # Get port from environment variable or use default
+    port = int(os.getenv('PORT', 8000))
+    print(f"Starting server on port {port}")
+    serve(app, host="0.0.0.0", port=port)
