@@ -112,6 +112,8 @@ async def update_user(user_id: str, update_data: UserUpdate) -> Dict[str, str]:
         
         current_values = result.get('values', [[]])[0]
         headers = HEADERS
+        # Remove rawNames from HEADERS
+        headers.remove('rawNames')
         current_data = dict(zip(headers, current_values))
         
         # Update with new data
