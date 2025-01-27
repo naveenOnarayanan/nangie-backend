@@ -15,6 +15,8 @@ load_dotenv()
 
 app = FastAPI()
 
+HEADERS = ['accessCode', 'maxGuests', 'partyName', 'phoneNumber', 'emailAddress', 'rsvpAsk', 'dietaryRestrictions', 'hotelAccommodations', 'questions', 'rawNames']
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -85,7 +87,7 @@ async def get_user(user_id: str) -> Dict[str, str]:
         ).execute()
         
         values = result.get('values', [[]])[0]
-        headers = ['accessCode', 'maxGuests', 'partyName', 'dietaryRestrictions', 'hotelAccommodations', 'questions', 'RAW Names']
+        headers = HEADERS
         
         return dict(zip(headers, values))
 
@@ -109,7 +111,7 @@ async def update_user(user_id: str, update_data: UserUpdate) -> Dict[str, str]:
         ).execute()
         
         current_values = result.get('values', [[]])[0]
-        headers = ['accessCode', 'maxGuests', 'partyName', 'dietaryRestrictions', 'hotelAccommodations', 'questions', 'RAW Names']
+        headers = HEADERS
         current_data = dict(zip(headers, current_values))
         
         # Update with new data
