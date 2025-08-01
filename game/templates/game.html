@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}Wedding Trivia - Team Game{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>🎯 Wedding Trivia Game</h1>
+    
+    <div id="registration" style="display: block;">
+        <h2>Register Your Team</h2>
+        <input type="text" id="teamName" placeholder="Enter your team name..." maxlength="50">
+        <button class="btn" onclick="registerTeam()">Join Game!</button>
+        <div id="regStatus"></div>
+    </div>
+    
+    <div id="gameArea" style="display: none;">
+        <div id="teamInfo" class="status info">
+            <strong>Team: <span id="currentTeam"></span></strong>
+        </div>
+        
+        <div id="waitingArea">
+            <h2>⏳ Waiting for next question...</h2>
+            <p>Teams registered: <span id="teamsCount">0</span></p>
+        </div>
+        
+        <div id="intermissionArea" style="display: none;">
+            <h2>📊 Answer Revealed!</h2>
+            <div class="question-card">
+                <div class="category" id="intermissionCategory"></div>
+                <h3 id="intermissionQuestion"></h3>
+                <div class="options" id="intermissionOptions"></div>
+                <div class="status success" id="answerReveal"></div>
+            </div>
+            <div class="timer" id="intermissionTimer">30</div>
+            <p style="text-align: center;">Next question starting in...</p>
+        </div>
+        
+        <div id="questionArea" style="display: none;">
+            <div class="question-card">
+                <div class="category" id="questionCategory"></div>
+                <h2 id="questionText"></h2>
+                <div class="timer" id="timer">30</div>
+                <div class="options" id="optionsContainer"></div>
+                <button class="btn" id="submitBtn" onclick="submitAnswer()" disabled>Submit Answer</button>
+            </div>
+        </div>
+        
+        <div id="resultsArea" style="display: none;">
+            <h2>🏆 Final Results</h2>
+            <table class="scores-table" id="finalScores">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Team</th>
+                        <th>Score</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        
+        <div id="gameStatus"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+let gameData = {
+    teamName: '',
+    selectedAnswer: null,
+    gameInterval: null
+};
+
+function registerTeam() {
+    const teamName = document.getElementById('teamName').value.trim();
+    if (!teamName) {
+        showStatus('regStatus', 'Please enter a team name!', 'error');
+        return;
+    }
+    
+    fetch('/api/register_team', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({team_name: teamName})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            gameData.teamName = teamName;
+            document.getElementById('currentTeam').textContent = teamName;
+            document.getElementById('registration').style.display = 'none';
+            document.getElementById('gameArea').style.display = 'block';
+            startGamePolling();
+            showStatus('gameStatus', 'Successfully registered! Wait for the game to start...', 'success');
+        } else {
+            showStatus('regStatus', data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showStatus('regStatus', 'Error registering team', 'error');
+    });
+}
+
+function startGamePolling() {
+    gameData.gameInterval = setInterval(updateGameStatus, 1000);
+    updateGameStatus();
+}
+
+function updateGameStatus() {
+    fetch('/api/game_status')
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('teamsCount').textContent = data.teams_count;
+        
+        if (data.in_intermission) {
+            showIntermission(data.question, data.intermission_time);
+        } else if (data.game_active && data.question) {
+            showQuestion(data.question, data.time_remaining, data.show_answer);
+        } else if (data.current_question >= data.total_questions) {
+            showResults();
+        } else {
+            showWaiting();
+        }
+    })
+    .catch(error => console.error('Error updating game status:', error));
+}
+
+function showWaiting() {
+    document.getElementById('waitingArea').style.display = 'block';
+    document.getElementById('questionArea').style.display = 'none';
+    document.getElementById('intermissionArea').style.display = 'none';
+    document.getElementById('resultsArea').style.display = 'none';
+}
+
+function showIntermission(question, timeRemaining) {
+    document.getElementById('waitingArea').style.display = 'none';
+    document.getElementById('questionArea').style.display = 'none';
+    document.getElementById('intermissionArea').style.display = 'block';
+    document.getElementById('resultsArea').style.display = 'none';
+    
+    document.getElementById('intermissionCategory').textContent = question.category;
+    document.getElementById('intermissionQuestion').textContent = question.question;
+    document.getElementById('intermissionTimer').textContent = Math.ceil(timeRemaining);
+    
+    const optionsContainer = document.getElementById('intermissionOptions');
+    optionsContainer.innerHTML = '';
+    
+    question.options.forEach((option, index) => {
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'option';
+        if (index === question.correct) {
+            optionDiv.className += ' selected';
+            optionDiv.style.background = '#28a745';
+            optionDiv.style.color = 'white';
+        }
+        optionDiv.textContent = option;
+        optionsContainer.appendChild(optionDiv);
+    });
+    
+    document.getElementById('answerReveal').textContent = 
+        `Correct answer: ${question.options[question.correct]} (${question.points} points)`;
+}
+
+function showQuestion(question, timeRemaining, showAnswer) {
+    document.getElementById('waitingArea').style.display = 'none';
+    document.getElementById('questionArea').style.display = 'block';
+    document.getElementById('intermissionArea').style.display = 'none';
+    document.getElementById('resultsArea').style.display = 'none';
+    
+    document.getElementById('questionCategory').textContent = question.category;
+    document.getElementById('questionText').textContent = question.question;
+    document.getElementById('timer').textContent = Math.ceil(timeRemaining);
+    
+    const optionsContainer = document.getElementById('optionsContainer');
+    optionsContainer.innerHTML = '';
+    
+    question.options.forEach((option, index) => {
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'option';
+        
+        // Show correct answer if answer is revealed
+        if (showAnswer && question.correct !== undefined && index === question.correct) {
+            optionDiv.style.background = '#28a745';
+            optionDiv.style.color = 'white';
+        }
+        
+        optionDiv.textContent = option;
+        
+        // Only allow selection if answers aren't locked and answer isn't shown
+        if (!showAnswer && timeRemaining > 0) {
+            optionDiv.onclick = () => selectOption(index, optionDiv);
+        }
+        
+        optionsContainer.appendChild(optionDiv);
+    });
+    
+    // Update submit button state
+    const submitBtn = document.getElementById('submitBtn');
+    if (showAnswer || timeRemaining <= 0) {
+        submitBtn.style.display = 'none';
+    } else {
+        submitBtn.style.display = 'block';
+        submitBtn.disabled = gameData.selectedAnswer === null;
+    }
+    
+    // Reset selection state for new questions
+    if (!showAnswer && gameData.selectedAnswer === null) {
+        gameData.selectedAnswer = null;
+    }
+}
+
+function selectOption(index, element) {
+    document.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+    element.classList.add('selected');
+    gameData.selectedAnswer = index;
+    document.getElementById('submitBtn').disabled = false;
+}
+
+function submitAnswer() {
+    if (gameData.selectedAnswer === null) return;
+    
+    fetch('/api/submit_answer', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            team_name: gameData.teamName,
+            answer: gameData.selectedAnswer
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('submitBtn').textContent = 'Answer Submitted! ✓';
+            document.getElementById('submitBtn').style.background = '#28a745';
+            showStatus('gameStatus', 'Answer submitted successfully!', 'success');
+        } else {
+            showStatus('gameStatus', data.message, 'error');
+        }
+    });
+}
+
+function showResults() {
+    clearInterval(gameData.gameInterval);
+    document.getElementById('waitingArea').style.display = 'none';
+    document.getElementById('questionArea').style.display = 'none';
+    document.getElementById('resultsArea').style.display = 'block';
+    
+    fetch('/api/scores')
+    .then(response => response.json())
+    .then(data => {
+        const tbody = document.querySelector('#finalScores tbody');
+        tbody.innerHTML = '';
+        
+        data.scores.forEach((score, index) => {
+            const row = tbody.insertRow();
+            row.insertCell(0).textContent = index + 1;
+            row.insertCell(1).textContent = score[0];
+            row.insertCell(2).textContent = score[1];
+            
+            if (index === 0) {
+                row.style.background = 'rgba(255, 215, 0, 0.3)'; // Gold for winner
+            }
+        });
+    });
+}
+
+function showStatus(elementId, message, type) {
+    const element = document.getElementById(elementId);
+    element.innerHTML = message;
+    element.className = `status ${type}`;
+    element.style.display = 'block';
+}
+{% endblock %}

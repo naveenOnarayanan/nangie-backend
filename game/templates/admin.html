@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Wedding Trivia - Admin{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>🎮 Game Admin Control</h1>
+    
+    <div class="card">
+        <h2>Game Status</h2>
+        <div id="gameInfo">
+            <p>Current Question: <span id="currentQ">0</span> / <span id="totalQ">15</span></p>
+            <p>Teams Registered: <span id="teamsCount">0</span></p>
+            <p>Game Active: <span id="gameActive">No</span></p>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2>Controls</h2>
+        <button class="btn" onclick="startQuestion()">Start Next Question (30s)</button>
+        <button class="btn btn-secondary" onclick="showAnswer()">Show Answer & Scores</button>
+        <button class="btn btn-secondary" onclick="startIntermission()">Start 30s Break</button>
+        <button class="btn" onclick="nextQuestion()">Skip to Next Question</button>
+        <button class="btn" onclick="showScores()">Refresh Scores</button>
+        <button class="btn" onclick="resetGame()" style="background: linear-gradient(45deg, #dc3545, #c82333);">Reset Game</button>
+    </div>
+    
+    <div class="card">
+        <h2>Current Question</h2>
+        <div id="currentQuestion">No question active</div>
+    </div>
+    
+    <div class="card">
+        <h2>Live Scores</h2>
+        <table class="scores-table" id="liveScores">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Team</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+let adminInterval = setInterval(updateAdminStatus, 2000);
+
+function updateAdminStatus() {
+    fetch('/api/game_status')
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('currentQ').textContent = data.current_question;
+        document.getElementById('totalQ').textContent = data.total_questions;
+        document.getElementById('teamsCount').textContent = data.teams_count;
+        document.getElementById('gameActive').textContent = data.game_active ? 'Yes' : 'No';
+        
+        if (data.question) {
+            let questionHtml = `
+                <div class="question-card">
+                    <div class="category">${data.question.category}</div>
+                    <h3>${data.question.question}</h3>
+                    <div class="options">
+                        ${data.question.options.map((opt, idx) => {
+                            let optionClass = 'option';
+                            if (data.show_answer && data.question.correct === idx) {
+                                optionClass += ' selected';
+                            }
+                            return `<div class="${optionClass}">${opt}</div>`;
+                        }).join('')}
+                    </div>`;
+            
+            if (data.in_intermission) {
+                questionHtml += `<p><strong>Intermission Time:</strong> ${Math.ceil(data.intermission_time)}s</p>`;
+                if (data.question.correct !== undefined) {
+                    questionHtml += `<p><strong>Correct Answer:</strong> ${data.question.options[data.question.correct]} (${data.question.points} points)</p>`;
+                }
+            } else if (data.show_answer && data.question.correct !== undefined) {
+                questionHtml += `<p><strong>Correct Answer:</strong> ${data.question.options[data.question.correct]} (${data.question.points} points)</p>`;
+            } else {
+                questionHtml += `<p><strong>Time Remaining:</strong> ${Math.ceil(data.time_remaining)}s</p>`;
+            }
+            
+            questionHtml += '</div>';
+            document.getElementById('currentQuestion').innerHTML = questionHtml;
+        } else {
+            document.getElementById('currentQuestion').textContent = 'No question active';
+        }
+    });
+    
+    updateScores();
+}
+
+function updateScores() {
+    fetch('/api/scores')
+    .then(response => response.json())
+    .then(data => {
+        const tbody = document.querySelector('#liveScores tbody');
+        tbody.innerHTML = '';
+        
+        data.scores.forEach((score, index) => {
+            const row = tbody.insertRow();
+            row.insertCell(0).textContent = index + 1;
+            row.insertCell(1).textContent = score[0];
+            row.insertCell(2).textContent = score[1];
+        });
+    });
+}
+
+function startQuestion() {
+    fetch('/api/start_question', {method: 'POST'})
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Question started! Teams have 30 seconds to answer.');
+        } else {
+            alert('Error: ' + data.message);
+        }
+    });
+}
+
+function showAnswer() {
+    fetch('/api/show_answer', {method: 'POST'})
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Answer revealed! Scores updated.');
+        }
+    });
+}
+
+function startIntermission() {
+    fetch('/api/start_intermission', {method: 'POST'})
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('30-second break started!');
+        }
+    });
+}
+
+function nextQuestion() {
+    fetch('/api/next_question', {method: 'POST'})
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Skipped to next question!');
+        }
+    });
+}
+
+function showScores() {
+    updateScores();
+    alert('Scores updated!');
+}
+
+function resetGame() {
+    if (confirm('Are you sure you want to reset the entire game?')) {
+        fetch('/api/reset_game', {method: 'POST'})
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Game reset successfully!');
+            }
+        });
+    }
+}
+{% endblock %}

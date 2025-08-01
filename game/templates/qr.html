@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}QR Code - Wedding Trivia{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>📱 Scan to Join Game</h1>
+    <div style="text-align: center;">
+        {% if qr_image %}
+        <img src="data:image/png;base64,{{ qr_image }}" alt="QR Code" style="max-width: 400px; width: 100%; height: auto; background: white; padding: 20px; border-radius: 15px;">
+        {% else %}
+        <div style="background: white; color: #333; padding: 40px; border-radius: 15px; margin: 20px 0;">
+            <h2>QR Code Generator Not Available</h2>
+            <p>Teams can manually enter this URL:</p>
+        </div>
+        {% endif %}
+        <p style="margin-top: 20px; font-size: 1.1em;">
+            <strong>Game URL:</strong><br>
+            <code style="background: rgba(255,255,255,0.2); padding: 8px; border-radius: 5px; font-size: 16px;">{{ qr_url }}</code>
+        </p>
+        <p style="margin-top: 20px; font-size: 0.9em; opacity: 0.8;">
+            Share this URL with teams or have them scan the QR code above
+        </p>
+    </div>
+</div>
+{% endblock %}
