@@ -7,6 +7,7 @@ import io
 import base64
 import socket
 from datetime import datetime
+from pydantic import BaseModel
 
 # Add this after your existing app setup and before your existing routes
 # Game templates (separate from main templates)
