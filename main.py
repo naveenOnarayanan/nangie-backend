@@ -1,16 +1,57 @@
-# Add these imports to your existing main.py (after your existing imports)
+# Your existing imports
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from typing import Dict, Optional
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from contextlib import contextmanager
+import os
+import uvicorn
+from pydantic import BaseModel, ConfigDict
+from dotenv import load_dotenv
+import json
+
+# Additional imports for game
 import time
 import qrcode
 import io
 import base64
 import socket
 from datetime import datetime
-from pydantic import BaseModel
 
-# Add this after your existing app setup and before your existing routes
-# Game templates (separate from main templates)
+# Load environment variables
+load_dotenv()
+
+# CREATE THE APP INSTANCE FIRST
+app = FastAPI()
+
+# Your existing headers and middleware
+HEADERS = [
+    "accessCode",
+    "maxGuests",
+    "partyName",
+    "confirmedGuests",
+    "phoneNumber",
+    "emailAddress",
+    "rsvpAsk",
+    "dietaryRestrictions",
+    "hotelAccommodations",
+    "questions",
+    "rawNames",
+]
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Game templates setup
 game_templates = Jinja2Templates(directory="game/templates")
 
 # ==================== TRIVIA GAME STATE ====================
@@ -28,7 +69,7 @@ game_state = {
     'show_answer': False
 }
 
-# Trivia questions
+# Trivia questions (keeping it shorter for this example)
 trivia_questions = [
     {
         'category': 'Culture Club - Vietnam',
@@ -44,98 +85,14 @@ trivia_questions = [
         'correct': 2,
         'points': 100
     },
-    {
-        'category': 'Culture Club - Canada',
-        'question': 'What sweet treat is made from snow and maple syrup in Canada?',
-        'options': ['Beaver Tail', 'Maple Taffy', 'Sugar Pancake', 'Frozen Syrup Pop'],
-        'correct': 1,
-        'points': 100
-    },
-    {
-        'category': 'Culture Club - USA',
-        'question': 'Which U.S. state has the largest Vietnamese population?',
-        'options': ['Texas', 'New York', 'Washington', 'California'],
-        'correct': 3,
-        'points': 100
-    },
-    {
-        'category': 'Culture Club - Geography',
-        'question': 'Put these in order of population (most to least): India, Vietnam, Canada',
-        'options': ['India > Canada > Vietnam', 'Vietnam > India > Canada', 'India > Vietnam > Canada', 'Canada > India > Vietnam'],
-        'correct': 2,
-        'points': 150
-    },
-    {
-        'category': 'Nangie or Nah?',
-        'question': 'Who had a pet dog named Sushi growing up?',
-        'options': ['Navneet', 'Angie', 'Both', 'Neither'],
-        'correct': 1,
-        'points': 150
-    },
-    {
-        'category': 'Nangie or Nah?',
-        'question': 'Who was once part of a competitive dance team?',
-        'options': ['Navneet', 'Angie', 'Both', 'Neither'],
-        'correct': 3,
-        'points': 150
-    },
-    {
-        'category': 'Nangie or Nah?',
-        'question': 'Who owns more tech gadgets?',
-        'options': ['Navneet', 'Angie', 'Both', 'Sushi'],
-        'correct': 0,
-        'points': 150
-    },
-    {
-        'category': 'Nangie or Nah?',
-        'question': 'Who is more likely to cry during a Disney movie?',
-        'options': ['Navneet', 'Angie', 'Both', 'Neither'],
-        'correct': 1,
-        'points': 150
-    },
-    {
-        'category': 'Nangie or Nah?',
-        'question': 'Who said "I love you" first?',
-        'options': ['Navneet', 'Angie', 'Both at the same time', 'No one remembers'],
-        'correct': 1,  # Update with real answer
-        'points': 200
-    },
-    {
-        'category': 'Wedding Whirlwind',
-        'question': 'What flower is traditionally thrown at Indian weddings for blessings?',
-        'options': ['Lotus', 'Jasmine', 'Marigold', 'Rose'],
-        'correct': 3,
-        'points': 200
-    },
-    {
-        'category': 'Wedding Whirlwind',
-        'question': 'Which of these fruits is commonly found in Vietnamese wedding baskets?',
-        'options': ['Apple', 'Mango', 'Blueberry', 'Kiwi'],
-        'correct': 1,
-        'points': 200
-    },
-    {
-        'category': 'Wedding Whirlwind',
-        'question': 'In which language is "I love you" said as "Anh yêu em"?',
-        'options': ['Tagalog', 'Thai', 'Vietnamese', 'Lao'],
-        'correct': 2,
-        'points': 200
-    },
-    {
-        'category': 'Wedding Whirlwind',
-        'question': 'Which Bollywood movie is famously about a big Indian wedding?',
-        'options': ['Lagaan', 'Monsoon Wedding', 'Slumdog Millionaire', 'Chennai Express'],
-        'correct': 1,
-        'points': 250
-    },
-    {
-        'category': 'Wedding Whirlwind',
-        'question': 'What does "Namaste" literally mean?',
-        'options': ['Hello', 'I respect you', 'I bow to you', 'Let\'s eat'],
-        'correct': 2,
-        'points': 250
-    }
+    # Add all your other questions here...
 ]
+
+# ==================== YOUR EXISTING RSVP MODELS ====================
+class UserUpdate(BaseModel):
+    """Model for user update data"""
+    model_config = ConfigDict(extra="allow")
+    data: Dict[str, str]
 
 # ==================== GAME MODELS ====================
 class TeamRegistration(BaseModel):
@@ -145,9 +102,31 @@ class AnswerSubmission(BaseModel):
     team_name: str
     answer: int
 
-# ==================== GAME ROUTES ====================
-# Add these routes to your existing main.py (before the existing routes or after, doesn't matter)
+# ==================== YOUR EXISTING RSVP CODE ====================
+# (Keep all your existing Google Sheets functions here)
+_sheets_service = None
 
+@contextmanager
+def get_sheets_service():
+    # Your existing implementation
+    pass
+
+def find_user_row(service, spreadsheet_id: str, user_id: str) -> Optional[int]:
+    # Your existing implementation
+    pass
+
+# ==================== YOUR EXISTING RSVP ROUTES ====================
+@app.get("/user/{user_id}")
+async def get_user(user_id: str) -> Dict[str, str]:
+    # Your existing implementation
+    pass
+
+@app.post("/update/{user_id}")
+async def update_user(user_id: str, update_data: UserUpdate) -> Dict[str, str]:
+    # Your existing implementation
+    pass
+
+# ==================== NEW GAME ROUTES ====================
 @app.get("/game", response_class=HTMLResponse)
 async def game_home(request: Request):
     """Game home page"""
@@ -166,8 +145,9 @@ async def game_admin(request: Request):
 @app.get("/game/qr", response_class=HTMLResponse)
 async def game_qr(request: Request):
     """QR code for teams to join"""
-    # Get server URL (adjust port as needed)
-    qr_url = f"http://{request.url.hostname}:{request.url.port or 8000}/game/play"
+    # Use request info to build URL
+    host = request.headers.get("host", "localhost:8000")
+    qr_url = f"http://{host}/game/play"
     
     try:
         qr = qrcode.QRCode(version=1, box_size=10, border=5)
@@ -192,7 +172,6 @@ async def game_qr(request: Request):
         })
 
 # ==================== GAME API ROUTES ====================
-
 @app.post("/game/api/register_team")
 async def register_team(team_data: TeamRegistration):
     """Register a new team"""
@@ -312,7 +291,7 @@ async def show_answer():
     game_state['answers_locked'] = True
     game_state['show_answer'] = True
     
-    return {'success': True, 'correct_teams': correct_teams if 'correct_teams' in locals() else []}
+    return {'success': True}
 
 @app.post("/game/api/start_intermission")
 async def start_intermission():
@@ -356,3 +335,17 @@ async def reset_game():
         'current_answers': {}
     })
     return {'success': True}
+
+# ==================== YOUR EXISTING CLEANUP AND SERVER START ====================
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Cleanup resources on shutdown"""
+    global _sheets_service
+    if _sheets_service:
+        _sheets_service.close()
+        _sheets_service = None
+
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", 8000))
+    print(f"Starting server on port {port}")
+    uvicorn.run(app, host="0.0.0.0", port=port)
