@@ -1,0 +1,376 @@
+<!-- Save this as game/templates/projector.html -->
+{% extends "base.html" %}
+
+{% block title %}Wedding Trivia - Projector Display{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+    }
+    
+    .projector-container {
+        max-width: 100vw;
+        min-height: 100vh;
+        padding: 40px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .projector-title {
+        font-size: 4em;
+        margin-bottom: 40px;
+        text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+        color: white;
+    }
+    
+    .projector-question {
+        background: rgba(255, 255, 255, 0.95);
+        color: #333;
+        border-radius: 30px;
+        padding: 60px;
+        margin: 20px 0;
+        min-height: 500px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+    
+    .projector-category {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        padding: 20px 40px;
+        border-radius: 25px;
+        font-size: 1.8em;
+        display: inline-block;
+        margin-bottom: 40px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+    
+    .projector-question-text {
+        font-size: 3.5em;
+        font-weight: bold;
+        color: #333;
+        margin: 40px 0;
+        line-height: 1.2;
+    }
+    
+    .projector-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin: 50px 0;
+        max-width: 1000px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .projector-option {
+        background: #f8f9fa;
+        border: 4px solid #dee2e6;
+        padding: 40px;
+        border-radius: 20px;
+        font-size: 1.8em;
+        font-weight: bold;
+        color: #333;
+        transition: all 0.5s ease;
+        min-height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+    
+    .projector-option.correct {
+        background: #28a745;
+        color: white;
+        border-color: #28a745;
+        animation: pulse 2s infinite;
+        transform: scale(1.05);
+    }
+    
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+        70% { box-shadow: 0 0 0 20px rgba(40, 167, 69, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+    }
+    
+    .projector-timer {
+        font-size: 6em;
+        font-weight: bold;
+        color: #ff6b6b;
+        margin: 30px 0;
+        text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+        font-family: 'Courier New', monospace;
+    }
+    
+    .projector-timer.warning {
+        color: #ff0000;
+        animation: blink 1s infinite;
+    }
+    
+    @keyframes blink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0.3; }
+    }
+    
+    .projector-status {
+        font-size: 2.5em;
+        margin: 40px 0;
+        color: #fff;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+    
+    .projector-waiting {
+        background: rgba(255, 255, 255, 0.95);
+        color: #333;
+        border-radius: 30px;
+        padding: 80px;
+        margin: 40px 0;
+        min-height: 400px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+    
+    .projector-scores {
+        background: rgba(255, 255, 255, 0.95);
+        color: #333;
+        border-radius: 30px;
+        padding: 60px;
+        margin: 20px 0;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+    
+    .projector-scores-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 30px 0;
+        font-size: 1.8em;
+    }
+    
+    .projector-scores-table th,
+    .projector-scores-table td {
+        padding: 20px;
+        text-align: left;
+        border-bottom: 3px solid #dee2e6;
+    }
+    
+    .projector-scores-table th {
+        background: #667eea;
+        color: white;
+        font-weight: bold;
+        font-size: 1.2em;
+    }
+    
+    .projector-scores-table tbody tr:first-child {
+        background: rgba(255, 215, 0, 0.5);
+        font-weight: bold;
+        font-size: 1.2em;
+    }
+    
+    .answer-reveal {
+        background: #28a745;
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin: 30px 0;
+        font-size: 1.5em;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    @media (max-width: 1200px) {
+        .projector-question-text {
+            font-size: 2.5em;
+        }
+        
+        .projector-options {
+            grid-template-columns: 1fr;
+        }
+        
+        .projector-timer {
+            font-size: 4em;
+        }
+        
+        .projector-title {
+            font-size: 3em;
+        }
+    }
+</style>
+
+<div class="projector-container">
+    <h1 class="projector-title">🎉 Navneet & Angie's Wedding Trivia 🎉</h1>
+    
+    <div id="waitingDisplay" class="projector-waiting">
+        <h2 style="font-size: 3em; margin-bottom: 30px;">⏳ Waiting for next question...</h2>
+        <p style="font-size: 2em;">Teams registered: <span id="teamsCount">0</span></p>
+        <p style="font-size: 1.5em; margin-top: 30px; opacity: 0.8;">Admin: Start the next question to begin!</p>
+    </div>
+    
+    <div id="questionDisplay" style="display: none;">
+        <div class="projector-question">
+            <div class="projector-category" id="questionCategory"></div>
+            <div class="projector-question-text" id="questionText"></div>
+            <div class="projector-timer" id="timer">30</div>
+            <div class="projector-options" id="optionsContainer"></div>
+        </div>
+    </div>
+    
+    <div id="intermissionDisplay" style="display: none;">
+        <div class="projector-question">
+            <div class="projector-category" id="intermissionCategory"></div>
+            <div class="projector-question-text" id="intermissionQuestion"></div>
+            <div class="answer-reveal" id="answerReveal"></div>
+            <div class="projector-options" id="intermissionOptions"></div>
+            <div class="projector-status">
+                <div class="projector-timer" id="intermissionTimer">30</div>
+                <p>Next question starting in...</p>
+            </div>
+        </div>
+    </div>
+    
+    <div id="resultsDisplay" style="display: none;">
+        <div class="projector-scores">
+            <h2 style="font-size: 3.5em; margin-bottom: 40px;">🏆 Final Results</h2>
+            <table class="projector-scores-table" id="finalScores">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Team</th>
+                        <th>Score</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+let projectorInterval = setInterval(updateProjectorDisplay, 1000);
+
+function updateProjectorDisplay() {
+    fetch('/game/api/game_status')
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('teamsCount').textContent = data.teams_count;
+        
+        if (data.in_intermission) {
+            showProjectorIntermission(data.question, data.intermission_time);
+        } else if (data.game_active && data.question) {
+            showProjectorQuestion(data.question, data.time_remaining, data.show_answer);
+        } else if (data.current_question >= data.total_questions) {
+            showProjectorResults();
+        } else {
+            showProjectorWaiting();
+        }
+    })
+    .catch(error => console.error('Error updating projector:', error));
+}
+
+function showProjectorWaiting() {
+    document.getElementById('waitingDisplay').style.display = 'block';
+    document.getElementById('questionDisplay').style.display = 'none';
+    document.getElementById('intermissionDisplay').style.display = 'none';
+    document.getElementById('resultsDisplay').style.display = 'none';
+}
+
+function showProjectorQuestion(question, timeRemaining, showAnswer) {
+    document.getElementById('waitingDisplay').style.display = 'none';
+    document.getElementById('questionDisplay').style.display = 'block';
+    document.getElementById('intermissionDisplay').style.display = 'none';
+    document.getElementById('resultsDisplay').style.display = 'none';
+    
+    document.getElementById('questionCategory').textContent = question.category;
+    document.getElementById('questionText').textContent = question.question;
+    
+    const timer = document.getElementById('timer');
+    const timeLeft = Math.ceil(timeRemaining);
+    timer.textContent = timeLeft;
+    
+    // Add warning animation when time is low
+    if (timeLeft <= 10) {
+        timer.classList.add('warning');
+    } else {
+        timer.classList.remove('warning');
+    }
+    
+    const optionsContainer = document.getElementById('optionsContainer');
+    optionsContainer.innerHTML = '';
+    
+    question.options.forEach((option, index) => {
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'projector-option';
+        optionDiv.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
+        
+        // Show correct answer if revealed
+        if (showAnswer && question.correct !== undefined && index === question.correct) {
+            optionDiv.classList.add('correct');
+        }
+        
+        optionsContainer.appendChild(optionDiv);
+    });
+}
+
+function showProjectorIntermission(question, timeRemaining) {
+    document.getElementById('waitingDisplay').style.display = 'none';
+    document.getElementById('questionDisplay').style.display = 'none';
+    document.getElementById('intermissionDisplay').style.display = 'block';
+    document.getElementById('resultsDisplay').style.display = 'none';
+    
+    document.getElementById('intermissionCategory').textContent = question.category;
+    document.getElementById('intermissionQuestion').textContent = question.question;
+    document.getElementById('intermissionTimer').textContent = Math.ceil(timeRemaining);
+    
+    const optionsContainer = document.getElementById('intermissionOptions');
+    optionsContainer.innerHTML = '';
+    
+    question.options.forEach((option, index) => {
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'projector-option';
+        optionDiv.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
+        
+        if (index === question.correct) {
+            optionDiv.classList.add('correct');
+        }
+        
+        optionsContainer.appendChild(optionDiv);
+    });
+    
+    document.getElementById('answerReveal').textContent = 
+        `Correct Answer: ${String.fromCharCode(65 + question.correct)}. ${question.options[question.correct]} (${question.points} points)`;
+}
+
+function showProjectorResults() {
+    document.getElementById('waitingDisplay').style.display = 'none';
+    document.getElementById('questionDisplay').style.display = 'none';
+    document.getElementById('intermissionDisplay').style.display = 'none';
+    document.getElementById('resultsDisplay').style.display = 'block';
+    
+    fetch('/game/api/scores')
+    .then(response => response.json())
+    .then(data => {
+        const tbody = document.querySelector('#finalScores tbody');
+        tbody.innerHTML = '';
+        
+        data.scores.forEach((score, index) => {
+            const row = tbody.insertRow();
+            row.insertCell(0).textContent = index + 1;
+            row.insertCell(1).textContent = score[0];
+            row.insertCell(2).textContent = score[1];
+        });
+    });
+}
+{% endblock %}

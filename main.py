@@ -69,8 +69,9 @@ game_state = {
     'show_answer': False
 }
 
-# Trivia questions (keeping it shorter for this example)
+# Complete trivia questions with all 15 questions
 trivia_questions = [
+    # Round 1: Culture Club
     {
         'category': 'Culture Club - Vietnam',
         'question': 'What is the name of the traditional Vietnamese dress worn at weddings and formal events?',
@@ -85,7 +86,99 @@ trivia_questions = [
         'correct': 2,
         'points': 100
     },
-    # Add all your other questions here...
+    {
+        'category': 'Culture Club - Canada',
+        'question': 'What sweet treat is made from snow and maple syrup in Canada?',
+        'options': ['Beaver Tail', 'Maple Taffy', 'Sugar Pancake', 'Frozen Syrup Pop'],
+        'correct': 1,
+        'points': 100
+    },
+    {
+        'category': 'Culture Club - USA',
+        'question': 'Which U.S. state has the largest Vietnamese population?',
+        'options': ['Texas', 'New York', 'Washington', 'California'],
+        'correct': 3,
+        'points': 100
+    },
+    {
+        'category': 'Culture Club - Geography',
+        'question': 'Put these in order of population (most to least): India, Vietnam, Canada',
+        'options': ['India > Canada > Vietnam', 'Vietnam > India > Canada', 'India > Vietnam > Canada', 'Canada > India > Vietnam'],
+        'correct': 2,
+        'points': 150
+    },
+    # Round 2: Nangie or Nah?
+    {
+        'category': 'Nangie or Nah?',
+        'question': 'Who had a pet dog named Sushi growing up?',
+        'options': ['Navneet', 'Angie', 'Both', 'Neither'],
+        'correct': 1,
+        'points': 150
+    },
+    {
+        'category': 'Nangie or Nah?',
+        'question': 'Who was once part of a competitive dance team?',
+        'options': ['Navneet', 'Angie', 'Both', 'Neither'],
+        'correct': 3,
+        'points': 150
+    },
+    {
+        'category': 'Nangie or Nah?',
+        'question': 'Who owns more tech gadgets?',
+        'options': ['Navneet', 'Angie', 'Both', 'Sushi'],
+        'correct': 0,
+        'points': 150
+    },
+    {
+        'category': 'Nangie or Nah?',
+        'question': 'Who is more likely to cry during a Disney movie?',
+        'options': ['Navneet', 'Angie', 'Both', 'Neither'],
+        'correct': 1,
+        'points': 150
+    },
+    {
+        'category': 'Nangie or Nah?',
+        'question': 'Who said "I love you" first?',
+        'options': ['Navneet', 'Angie', 'Both at the same time', 'No one remembers'],
+        'correct': 1,  # Update with real answer
+        'points': 200
+    },
+    # Round 3: Wedding Whirlwind
+    {
+        'category': 'Wedding Whirlwind',
+        'question': 'What flower is traditionally thrown at Indian weddings for blessings?',
+        'options': ['Lotus', 'Jasmine', 'Marigold', 'Rose'],
+        'correct': 3,
+        'points': 200
+    },
+    {
+        'category': 'Wedding Whirlwind',
+        'question': 'Which of these fruits is commonly found in Vietnamese wedding baskets?',
+        'options': ['Apple', 'Mango', 'Blueberry', 'Kiwi'],
+        'correct': 1,
+        'points': 200
+    },
+    {
+        'category': 'Wedding Whirlwind',
+        'question': 'In which language is "I love you" said as "Anh yêu em"?',
+        'options': ['Tagalog', 'Thai', 'Vietnamese', 'Lao'],
+        'correct': 2,
+        'points': 200
+    },
+    {
+        'category': 'Wedding Whirlwind',
+        'question': 'Which Bollywood movie is famously about a big Indian wedding?',
+        'options': ['Lagaan', 'Monsoon Wedding', 'Slumdog Millionaire', 'Chennai Express'],
+        'correct': 1,
+        'points': 250
+    },
+    {
+        'category': 'Wedding Whirlwind',
+        'question': 'What does "Namaste" literally mean?',
+        'options': ['Hello', 'I respect you', 'I bow to you', 'Let\'s eat'],
+        'correct': 2,
+        'points': 250
+    }
 ]
 
 # ==================== YOUR EXISTING RSVP MODELS ====================
@@ -262,10 +355,11 @@ async def submit_answer(answer_data: AnswerSubmission):
 
 @app.post("/game/api/start_question")
 async def start_question():
-    """Start next question"""
+    """Start the current question"""
     if game_state['current_question'] >= len(trivia_questions):
         raise HTTPException(status_code=400, detail="No more questions")
     
+    # Start the current question
     game_state['game_active'] = True
     game_state['question_start_time'] = time.time()
     game_state['answers_locked'] = False
@@ -273,45 +367,73 @@ async def start_question():
     game_state['show_answer'] = False
     game_state['current_answers'] = {}
     
-    return {'success': True}
+    return {
+        'success': True, 
+        'current_question': game_state['current_question'],
+        'message': f"Question {game_state['current_question'] + 1} started!"
+    }
 
 @app.post("/game/api/show_answer")
 async def show_answer():
     """Show correct answer and calculate scores"""
+    correct_teams = []
+    
     if 'current_answers' in game_state and game_state['current_question'] < len(trivia_questions):
         correct_answer = trivia_questions[game_state['current_question']]['correct']
         points = trivia_questions[game_state['current_question']]['points']
         
-        correct_teams = []
+        # Calculate scores
         for team_name, answer_data in game_state['current_answers'].items():
             if answer_data['answer'] == correct_answer:
                 game_state['scores'][team_name] += points
                 correct_teams.append(team_name)
     
+    # Lock answers and show correct answer
     game_state['answers_locked'] = True
     game_state['show_answer'] = True
     
-    return {'success': True}
-
-@app.post("/game/api/start_intermission")
-async def start_intermission():
-    """Start 30-second intermission"""
-    game_state['in_intermission'] = True
-    game_state['intermission_start_time'] = time.time()
-    return {'success': True}
+    # Get current scores for response
+    sorted_scores = sorted(game_state['scores'].items(), key=lambda x: x[1], reverse=True)
+    
+    return {
+        'success': True, 
+        'correct_teams': correct_teams,
+        'current_scores': sorted_scores[:5]  # Top 5 scores
+    }
 
 @app.post("/game/api/next_question")
 async def next_question():
-    """Move to next question immediately"""
+    """Move to next question"""
+    # Move to next question
     game_state['current_question'] += 1
-    game_state['answers_locked'] = True
+    
+    # Reset states
+    game_state['game_active'] = False
+    game_state['answers_locked'] = False
     game_state['in_intermission'] = False
     game_state['show_answer'] = False
     
+    # Check if game is complete
     if game_state['current_question'] >= len(trivia_questions):
         game_state['game_active'] = False
+        return {
+            'success': True, 
+            'current_question': game_state['current_question'],
+            'game_complete': True,
+            'message': 'Game completed!'
+        }
     
-    return {'success': True}
+    return {
+        'success': True, 
+        'current_question': game_state['current_question'],
+        'game_complete': False,
+        'message': f'Ready for question {game_state["current_question"] + 1}'
+    }
+
+@app.get("/game/projector", response_class=HTMLResponse)
+async def game_projector(request: Request):
+    """Projector display for questions"""
+    return game_templates.TemplateResponse("projector.html", {"request": request})
 
 @app.get("/game/api/scores")
 async def get_scores():
