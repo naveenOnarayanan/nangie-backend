@@ -267,13 +267,6 @@
     <script>
         const questions = [
             {
-                image: "https://images.theconversation.com/files/259728/original/file-20190219-43273-w16gs4.jpg?ixlib=rb-4.1.0&q=45&auto=format&w=1356&h=668&fit=crop",
-                question: "What type of aircraft is shown in this image?",
-                options: ["Boeing 747", "Airbus A380", "Boeing 777", "Airbus A350"],
-                correct: 1,
-                explanation: "The Airbus A380 is recognizable by its distinctive double-deck design and four engines."
-            },
-            {
                 image: "https://upload.wikimedia.org/wikipedia/commons/c/c9/F-16_June_2008.jpg",
                 question: "Identify this military fighter jet:",
                 options: ["F-16 Fighting Falcon", "F-22 Raptor", "F-35 Lightning II", "F/A-18 Super Hornet"],
@@ -288,25 +281,25 @@
                 explanation: "The Boeing 787 Dreamliner is identifiable by its swept wings, twin engines, and distinctive window design."
             },
             {
-                image: "https://palmspringsairmuseum.org/wp-content/uploads/2022/10/Bunny.jpg",
-                question: "This vintage aircraft is a:",
-                options: ["P-51 Mustang", "Spitfire", "F4U Corsair", "Messerschmitt Bf 109"],
-                correct: 0,
-                explanation: "The P-51 Mustang was a World War II-era fighter known for its distinctive design and long-range capabilities."
+                image: "https://www.atomicarchive.com/img/alamanc/b-52-stratofortress.jpg",
+                question: "This massive strategic bomber is a:",
+                options: ["B-1B Lancer", "B-52 Stratofortress", "B-36 Peacemaker", "Tu-95 Bear"],
+                correct: 1,
+                explanation: "The B-52 Stratofortress is instantly recognizable by its eight engines in four pods and distinctive drooping wings. Still in service since the 1950s!"
             },
-            // {
-            //     image: "https://cdn.pixabay.com/photo/2017/08/07/14/02/helicopter-2604691_960_720.jpg",
-            //     question: "Identify this helicopter:",
-            //     options: ["Bell UH-1 Huey", "CH-47 Chinook", "Black Hawk", "Apache AH-64"],
-            //     correct: 3,
-            //     explanation: "The Apache AH-64 is an attack helicopter with distinctive twin engines and tandem cockpit configuration."
-            // },
             {
-                image: "https://vegasaviation.com/wp-content/uploads/2024/04/cessna.jpg",
-                question: "What type of aircraft is shown?",
-                options: ["Cessna 172", "Piper Cherokee", "Beechcraft Bonanza", "Cirrus SR22"],
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/US_Navy_051105-F-5480T-005_An_F-14D_Tomcat_conducts_a_mission_over_the_Persian_Gulf-region.jpg/1200px-US_Navy_051105-F-5480T-005_An_F-14D_Tomcat_conducts_a_mission_over_the_Persian_Gulf-region.jpg",
+                question: "This Navy fighter with variable-sweep wings is a:",
+                options: ["F-14 Tomcat", "F-15 Eagle", "F-4 Phantom II", "A-6 Intruder"],
                 correct: 0,
-                explanation: "The Cessna 172 is one of the most popular training aircraft, recognizable by its high-wing configuration."
+                explanation: "The F-14 Tomcat was famous for its variable-sweep wings and twin tails. Many aerospace workers in the 1970s-80s worked on this iconic Navy fighter."
+            },
+            {
+                image: "https://www.airforce-technology.com/wp-content/uploads/sites/6/2020/06/200306-Z-QI712-0001-1.jpg",
+                question: "This Boeing aerial refueling tanker is a:",
+                options: ["KC-10 Extender", "KC-135 Stratotanker", "KC-46 Pegasus", "C-135 Stratolifter"],
+                correct: 1,
+                explanation: "The Boeing KC-135 Stratotanker has been the backbone of USAF aerial refueling since 1957. Many Boeing workers spent decades building and maintaining these aircraft."
             },
             {
                 image: "https://upload.wikimedia.org/wikipedia/commons/7/77/RAF_F-35B_integration_flying_training_with_USAF_B-2_30092019_-_4.jpg",
@@ -316,31 +309,47 @@
                 explanation: "The B-2 Spirit is a stealth bomber with its distinctive flying wing design."
             },
             {
-                image: "https://upload.wikimedia.org/wikipedia/commons/6/67/F-WWEZ_%28948%29_ATR.72-212A%28500%29_FlyFireFly_TLS_30AUG11_%286097869500%29_%28cropped%29.jpg",
-                question: "Identify this regional airliner:",
-                options: ["Bombardier CRJ", "Embraer ERJ", "ATR 72", "Dash 8"],
+                image: "https://upload.wikimedia.org/wikipedia/commons/2/2b/QF-4_Holloman_AFB.jpg",
+                question: "This Vietnam War-era fighter jet is a:",
+                options: ["F-105 Thunderchief", "F-4 Phantom II", "F-8 Crusader", "A-4 Skyhawk"],
+                correct: 1,
+                explanation: "The F-4 Phantom II was a twin-engine, all-weather fighter-bomber. Its distinctive upturn at the wing tips and twin engines were iconic in the 1960s-70s."
+            },
+            {
+                image: "https://upload.wikimedia.org/wikipedia/commons/b/b8/B-747_Iberia.jpg",
+                question: "This 1970s 'Queen of the Skies' is a:",
+                options: ["Boeing 707", "Boeing 747", "Lockheed L-1011", "McDonnell Douglas DC-10"],
+                correct: 1,
+                explanation: "The Boeing 747 'Jumbo Jet' revolutionized air travel when it debuted in 1970. Its distinctive hump and four engines made it instantly recognizable."
+            },
+            {
+                image: "https://upload.wikimedia.org/wikipedia/commons/8/80/Fairchild_Republic_A-10_Thunderbolt_II_-_32156159151.jpg",
+                question: "This tank-busting aircraft with massive engines is a:",
+                options: ["A-6 Intruder", "A-7 Corsair II", "A-10 Thunderbolt II", "AV-8B Harrier"],
                 correct: 2,
-                explanation: "The ATR 72 is a twin-engine turboprop regional airliner known for its high-wing configuration."
+                explanation: "The A-10 'Warthog' is unmistakable with its twin engines mounted high on the fuselage and straight wings. Designed in the 1970s specifically for close air support."
             },
             {
-                image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTlO_qjI_pHqWN5l79fDaj44n5-YnQf_MYO0Q&s",
-                question: "This military transport aircraft is a:",
-                options: ["C-130 Hercules", "C-17 Globemaster III", "A400M Atlas", "C-5 Galaxy"],
-                correct: 0,
-                explanation: "The C-130 Hercules is a four-engine turboprop military transport aircraft with a distinctive high-wing design."
+                image: "https://www.nato.int/nato_static_fl2014/assets/pictures/graphics_topics/20170221_1702-awacs_rdax_775x440s.jpg",
+                question: "This Boeing AWACS aircraft with the distinctive radar dome is a:",
+                options: ["E-2 Hawkeye", "E-3 Sentry", "E-8 JSTARS", "P-3 Orion"],
+                correct: 1,
+                explanation: "The Boeing E-3 Sentry AWACS is unmistakable with its large rotating radar dome. Based on the 707 airframe, it entered service in 1977."
             },
             {
-                image: "https://th-thumbnailer.cdn-si-edu.com/fSi__xSjrTdmT1EPxOb9d5hd9XI=/1000x680/https://tf-cmsv2-smithsonianmag-media.s3.amazonaws.com/filer/b1/93/b1937e31-7b38-4a60-86b3-ab1f95f18a3a/concorde-388-june14.jpg",
-                question: "What supersonic airliner is this?",
-                options: ["Concorde", "Tu-144", "Boeing 2707", "Lockheed L-2000"],
-                correct: 0,
-                explanation: "The Concorde was a supersonic passenger airliner known for its distinctive delta wing and drooping nose."
+                image: "https://ml5psubhxdln.i.optimole.com/w:auto/h:auto/q:mauto/ig:avif/https://migflug.com/jetflights/wp-content/uploads/sites/4/2014/07/lockheed_sr_71_blackbird-1920x1200.jpg",
+                question: "This reconnaissance aircraft is a:",
+                options: ["U-2 Dragon Lady", "SR-71 Blackbird", "A-12 Oxcart", "D-21 Drone"],
+                correct: 1,
+                explanation: "The SR-71 Blackbird was a long-range, high-altitude strategic reconnaissance aircraft capable of Mach 3+ speeds."
             }
         ];
 
         let currentQuestion = 0;
         let score = 0;
         let answered = false;
+        let attempts = 0;
+        let maxAttempts = 2;
 
         function startQuiz() {
             showQuestion();
@@ -354,7 +363,7 @@
                 <div class="question-container active">
                     <div class="question-header">
                         <div class="question-number">Question ${currentQuestion + 1} of ${questions.length}</div>
-                        <div class="score">Score: ${score}/${questions.length}</div>
+                        <div class="score">Score: ${score}/${questions.length} | Attempts: ${attempts}/${maxAttempts}</div>
                     </div>
                     
                     <img src="${question.image}" alt="Aircraft Image" class="aircraft-image">
@@ -380,41 +389,66 @@
             `;
             
             answered = false;
+            attempts = 0;
         }
 
         function selectAnswer(selectedIndex) {
             if (answered) return;
             
-            answered = true;
+            attempts++;
             const question = questions[currentQuestion];
             const options = document.querySelectorAll('.option');
             const feedback = document.getElementById('feedback');
             const nextBtn = document.getElementById('next-btn');
             
-            // Disable all options
-            options.forEach(option => option.classList.add('disabled'));
-            
             // Mark selected option
             options[selectedIndex].classList.add('selected');
             
-            // Show correct answer
-            options[question.correct].classList.add('correct');
-            
-            // Mark incorrect answer if wrong
-            if (selectedIndex !== question.correct) {
-                options[selectedIndex].classList.add('incorrect');
-                feedback.innerHTML = `Incorrect! ${question.explanation}`;
-                feedback.className = 'feedback incorrect show';
-            } else {
+            // Check if answer is correct
+            if (selectedIndex === question.correct) {
+                // Correct answer
+                answered = true;
                 score++;
+                
+                // Disable all options
+                options.forEach(option => option.classList.add('disabled'));
+                
+                // Show correct answer
+                options[question.correct].classList.add('correct');
+                
                 feedback.innerHTML = `Correct! ${question.explanation}`;
                 feedback.className = 'feedback correct show';
                 
                 // Update score display
-                document.querySelector('.score').textContent = `Score: ${score}/${questions.length}`;
+                document.querySelector('.score').textContent = `Score: ${score}/${questions.length} | Attempts: ${attempts}/${maxAttempts}`;
+                
+                nextBtn.disabled = false;
+            } else {
+                // Wrong answer
+                options[selectedIndex].classList.add('incorrect');
+                options[selectedIndex].classList.add('disabled');
+                
+                if (attempts >= maxAttempts) {
+                    // No more attempts left
+                    answered = true;
+                    
+                    // Disable all options and show correct answer
+                    options.forEach(option => option.classList.add('disabled'));
+                    options[question.correct].classList.add('correct');
+                    
+                    feedback.innerHTML = `Out of attempts! The correct answer was ${question.options[question.correct]}. ${question.explanation}`;
+                    feedback.className = 'feedback incorrect show';
+                    
+                    nextBtn.disabled = false;
+                } else {
+                    // Still have attempts left
+                    feedback.innerHTML = `Incorrect! You have ${maxAttempts - attempts} attempt${maxAttempts - attempts !== 1 ? 's' : ''} left.`;
+                    feedback.className = 'feedback incorrect show';
+                    
+                    // Update attempts display
+                    document.querySelector('.score').textContent = `Score: ${score}/${questions.length} | Attempts: ${attempts}/${maxAttempts}`;
+                }
             }
-            
-            nextBtn.disabled = false;
         }
 
         function nextQuestion() {
@@ -456,6 +490,7 @@
             currentQuestion = 0;
             score = 0;
             answered = false;
+            attempts = 0;
             
             document.getElementById('final-score').classList.remove('show');
             document.getElementById('quiz-content').style.display = 'block';
