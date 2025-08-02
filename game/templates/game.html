@@ -27,21 +27,22 @@
             <h2>📊 Answer Revealed!</h2>
             <div class="question-card">
                 <div class="category" id="intermissionCategory"></div>
-                <h3 id="intermissionQuestion"></h3>
+                <h3 id="intermissionQuestion" style="color: #333; margin: 15px 0;"></h3>
                 <div class="options" id="intermissionOptions"></div>
                 <div class="status success" id="answerReveal"></div>
             </div>
             <div class="timer" id="intermissionTimer">30</div>
-            <p style="text-align: center;">Next question starting in...</p>
+            <p style="text-align: center; color: #333;">Next question starting in...</p>
         </div>
         
         <div id="questionArea" style="display: none;">
             <div class="question-card">
                 <div class="category" id="questionCategory"></div>
-                <h2 id="questionText"></h2>
+                <h2 id="questionText" style="color: #333; margin: 15px 0; font-size: 1.4em;"></h2>
                 <div class="timer" id="timer">30</div>
                 <div class="options" id="optionsContainer"></div>
                 <button class="btn" id="submitBtn" onclick="submitAnswer()" disabled>Submit Answer</button>
+                <div id="submitMessage" style="display: none; text-align: center; margin-top: 10px; color: #333;"></div>
             </div>
         </div>
         
@@ -68,7 +69,8 @@
 let gameData = {
     teamName: '',
     selectedAnswer: null,
-    gameInterval: null
+    gameInterval: null,
+    hasSubmitted: false
 };
 
 function registerTeam() {
@@ -148,10 +150,14 @@ function showIntermission(question, timeRemaining) {
     question.options.forEach((option, index) => {
         const optionDiv = document.createElement('div');
         optionDiv.className = 'option';
+        optionDiv.style.color = '#333';
+        optionDiv.style.fontSize = '16px';
+        
         if (index === question.correct) {
             optionDiv.className += ' selected';
             optionDiv.style.background = '#28a745';
             optionDiv.style.color = 'white';
+            optionDiv.style.fontWeight = 'bold';
         }
         optionDiv.textContent = option;
         optionsContainer.appendChild(optionDiv);
@@ -172,52 +178,86 @@ function showQuestion(question, timeRemaining, showAnswer) {
     document.getElementById('timer').textContent = Math.ceil(timeRemaining);
     
     const optionsContainer = document.getElementById('optionsContainer');
-    optionsContainer.innerHTML = '';
     
-    question.options.forEach((option, index) => {
-        const optionDiv = document.createElement('div');
-        optionDiv.className = 'option';
+    // Only rebuild options if this is a new question
+    if (optionsContainer.children.length === 0 || !gameData.hasSubmitted) {
+        optionsContainer.innerHTML = '';
         
-        // Show correct answer if answer is revealed
-        if (showAnswer && question.correct !== undefined && index === question.correct) {
-            optionDiv.style.background = '#28a745';
-            optionDiv.style.color = 'white';
+        question.options.forEach((option, index) => {
+            const optionDiv = document.createElement('div');
+            optionDiv.className = 'option';
+            optionDiv.style.color = '#333';
+            optionDiv.style.fontSize = '16px';
+            optionDiv.style.cursor = 'pointer';
+            
+            // Show correct answer if answer is revealed
+            if (showAnswer && question.correct !== undefined && index === question.correct) {
+                optionDiv.style.background = '#28a745';
+                optionDiv.style.color = 'white';
+                optionDiv.style.fontWeight = 'bold';
+            }
+            
+            optionDiv.textContent = option;
+            
+            // Only allow selection if answers aren't locked, answer isn't shown, and team hasn't submitted
+            if (!showAnswer && timeRemaining > 0 && !gameData.hasSubmitted) {
+                optionDiv.onclick = () => selectOption(index, optionDiv);
+            }
+            
+            optionsContainer.appendChild(optionDiv);
+        });
+        
+        // Reset submission state for new questions
+        if (!showAnswer) {
+            gameData.hasSubmitted = false;
+            gameData.selectedAnswer = null;
         }
-        
-        optionDiv.textContent = option;
-        
-        // Only allow selection if answers aren't locked and answer isn't shown
-        if (!showAnswer && timeRemaining > 0) {
-            optionDiv.onclick = () => selectOption(index, optionDiv);
-        }
-        
-        optionsContainer.appendChild(optionDiv);
-    });
+    }
     
     // Update submit button state
     const submitBtn = document.getElementById('submitBtn');
+    const submitMessage = document.getElementById('submitMessage');
+    
     if (showAnswer || timeRemaining <= 0) {
         submitBtn.style.display = 'none';
+        submitMessage.style.display = 'none';
+    } else if (gameData.hasSubmitted) {
+        submitBtn.style.display = 'none';
+        submitMessage.style.display = 'block';
+        submitMessage.textContent = '✓ Answer submitted! Wait for results...';
+        submitMessage.style.color = '#28a745';
+        submitMessage.style.fontWeight = 'bold';
     } else {
         submitBtn.style.display = 'block';
+        submitMessage.style.display = 'none';
         submitBtn.disabled = gameData.selectedAnswer === null;
-    }
-    
-    // Reset selection state for new questions
-    if (!showAnswer && gameData.selectedAnswer === null) {
-        gameData.selectedAnswer = null;
     }
 }
 
 function selectOption(index, element) {
-    document.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+    // Don't allow selection if already submitted
+    if (gameData.hasSubmitted) return;
+    
+    // Remove previous selection
+    document.querySelectorAll('#optionsContainer .option').forEach(opt => {
+        opt.classList.remove('selected');
+        opt.style.background = '#f8f9fa';
+        opt.style.color = '#333';
+        opt.style.borderColor = '#dee2e6';
+    });
+    
+    // Add selection to clicked option
     element.classList.add('selected');
+    element.style.background = '#667eea';
+    element.style.color = 'white';
+    element.style.borderColor = '#667eea';
+    
     gameData.selectedAnswer = index;
     document.getElementById('submitBtn').disabled = false;
 }
 
 function submitAnswer() {
-    if (gameData.selectedAnswer === null) return;
+    if (gameData.selectedAnswer === null || gameData.hasSubmitted) return;
     
     fetch('/game/api/submit_answer', {
         method: 'POST',
@@ -230,13 +270,30 @@ function submitAnswer() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            document.getElementById('submitBtn').disabled = true;
-            document.getElementById('submitBtn').textContent = 'Answer Submitted! ✓';
-            document.getElementById('submitBtn').style.background = '#28a745';
+            gameData.hasSubmitted = true;
+            
+            // Lock all options - remove click handlers and change cursor
+            document.querySelectorAll('#optionsContainer .option').forEach(opt => {
+                opt.onclick = null;
+                opt.style.cursor = 'default';
+                opt.style.opacity = '0.7';
+            });
+            
+            // Update button and show message
+            document.getElementById('submitBtn').style.display = 'none';
+            const submitMessage = document.getElementById('submitMessage');
+            submitMessage.style.display = 'block';
+            submitMessage.textContent = '✓ Answer submitted! Wait for results...';
+            submitMessage.style.color = '#28a745';
+            submitMessage.style.fontWeight = 'bold';
+            
             showStatus('gameStatus', 'Answer submitted successfully!', 'success');
         } else {
             showStatus('gameStatus', data.message, 'error');
         }
+    })
+    .catch(error => {
+        showStatus('gameStatus', 'Error submitting answer', 'error');
     });
 }
 
@@ -244,6 +301,7 @@ function showResults() {
     clearInterval(gameData.gameInterval);
     document.getElementById('waitingArea').style.display = 'none';
     document.getElementById('questionArea').style.display = 'none';
+    document.getElementById('intermissionArea').style.display = 'none';
     document.getElementById('resultsArea').style.display = 'block';
     
     fetch('/game/api/scores')
