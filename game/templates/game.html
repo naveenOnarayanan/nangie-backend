@@ -70,7 +70,8 @@ let gameData = {
     teamName: '',
     selectedAnswer: null,
     gameInterval: null,
-    hasSubmitted: false
+    hasSubmitted: false,
+    lastQuestionText: ''
 };
 
 function registerTeam() {
@@ -179,8 +180,17 @@ function showQuestion(question, timeRemaining, showAnswer) {
     
     const optionsContainer = document.getElementById('optionsContainer');
     
-    // Only rebuild options if this is a new question
-    if (optionsContainer.children.length === 0 || !gameData.hasSubmitted) {
+    // Check if this is a new question by comparing question text
+    const currentQuestionText = document.getElementById('questionText').textContent;
+    const isNewQuestion = !gameData.lastQuestionText || gameData.lastQuestionText !== question.question;
+    
+    if (isNewQuestion) {
+        // Reset state for new question
+        gameData.hasSubmitted = false;
+        gameData.selectedAnswer = null;
+        gameData.lastQuestionText = question.question;
+        
+        // Rebuild options for new question
         optionsContainer.innerHTML = '';
         
         question.options.forEach((option, index) => {
@@ -189,28 +199,33 @@ function showQuestion(question, timeRemaining, showAnswer) {
             optionDiv.style.color = '#333';
             optionDiv.style.fontSize = '16px';
             optionDiv.style.cursor = 'pointer';
-            
-            // Show correct answer if answer is revealed
-            if (showAnswer && question.correct !== undefined && index === question.correct) {
-                optionDiv.style.background = '#28a745';
-                optionDiv.style.color = 'white';
-                optionDiv.style.fontWeight = 'bold';
-            }
-            
             optionDiv.textContent = option;
             
-            // Only allow selection if answers aren't locked, answer isn't shown, and team hasn't submitted
-            if (!showAnswer && timeRemaining > 0 && !gameData.hasSubmitted) {
+            // Only allow selection if answers aren't locked and answer isn't shown
+            if (!showAnswer && timeRemaining > 0) {
                 optionDiv.onclick = () => selectOption(index, optionDiv);
             }
             
             optionsContainer.appendChild(optionDiv);
         });
-        
-        // Reset submission state for new questions
-        if (!showAnswer) {
-            gameData.hasSubmitted = false;
-            gameData.selectedAnswer = null;
+    } else {
+        // Update existing options for answer reveal or time changes
+        const options = optionsContainer.children;
+        for (let i = 0; i < options.length; i++) {
+            const optionDiv = options[i];
+            
+            // Show correct answer if answer is revealed
+            if (showAnswer && question.correct !== undefined && i === question.correct) {
+                optionDiv.style.background = '#28a745';
+                optionDiv.style.color = 'white';
+                optionDiv.style.fontWeight = 'bold';
+            }
+            
+            // Remove click handlers if time is up or answer is shown
+            if (showAnswer || timeRemaining <= 0) {
+                optionDiv.onclick = null;
+                optionDiv.style.cursor = 'default';
+            }
         }
     }
     
@@ -236,7 +251,12 @@ function showQuestion(question, timeRemaining, showAnswer) {
 
 function selectOption(index, element) {
     // Don't allow selection if already submitted
-    if (gameData.hasSubmitted) return;
+    if (gameData.hasSubmitted) {
+        console.log('Already submitted, ignoring click');
+        return;
+    }
+    
+    console.log('Selecting option:', index); // Debug log
     
     // Remove previous selection
     document.querySelectorAll('#optionsContainer .option').forEach(opt => {
@@ -254,6 +274,8 @@ function selectOption(index, element) {
     
     gameData.selectedAnswer = index;
     document.getElementById('submitBtn').disabled = false;
+    
+    console.log('Selected answer:', gameData.selectedAnswer, 'hasSubmitted:', gameData.hasSubmitted);
 }
 
 function submitAnswer() {
