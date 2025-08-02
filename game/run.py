@@ -176,7 +176,7 @@ trivia_questions = [
 def index():
     return render_template('index.html')
 
-@app.route('/admin')
+@app.route('/game/admin')
 def admin():
     return render_template('admin.html')
 
@@ -351,7 +351,7 @@ def reset_game():
     })
     return jsonify({'success': True})
 
-@app.route('/qr')
+@app.route('/game/qr')
 def generate_qr():
     # Get the local IP address for the QR code
     import socket
