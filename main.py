@@ -347,6 +347,11 @@ async def game_status():
         'current_scores': sorted_scores  # Add scores to every status response
     }
 
+@app.get("/game/papa", response_class=HTMLResponse)
+async def game_projector(request: Request):
+    """Projector display for questions"""
+    return game_templates.TemplateResponse("planes.html", {"request": request})
+
 @app.post("/game/api/submit_answer")
 async def submit_answer(answer_data: AnswerSubmission):
     """Submit team answer"""
