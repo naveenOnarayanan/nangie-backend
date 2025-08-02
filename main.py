@@ -288,7 +288,7 @@ async def register_team(team_data: TeamRegistration):
 
 @app.get("/game/api/game_status")
 async def game_status():
-    """Get current game status"""
+    """Get current game status with auto score reveal"""
     current_q = None
     time_remaining = 0
     intermission_time = 0
@@ -308,15 +308,30 @@ async def game_status():
     elif game_state['game_active'] and game_state['current_question'] < len(trivia_questions):
         current_q = trivia_questions[game_state['current_question']].copy()
         
-        if not game_state['show_answer']:
-            current_q.pop('correct', None)
-        
         if game_state['question_start_time']:
             elapsed = time.time() - game_state['question_start_time']
             time_remaining = max(0, game_state['question_time_limit'] - elapsed)
             
+            # AUTO-SHOW ANSWER WHEN TIME HITS ZERO
             if time_remaining <= 0 and not game_state['answers_locked']:
                 game_state['answers_locked'] = True
+                game_state['show_answer'] = True
+                
+                # Auto-calculate scores when time expires
+                if 'current_answers' in game_state:
+                    correct_answer = trivia_questions[game_state['current_question']]['correct']
+                    points = trivia_questions[game_state['current_question']]['points']
+                    
+                    for team_name, answer_data in game_state['current_answers'].items():
+                        if answer_data['answer'] == correct_answer:
+                            game_state['scores'][team_name] += points
+        
+        # Include correct answer if showing answer
+        if not game_state['show_answer']:
+            current_q.pop('correct', None)
+    
+    # Get current scores for chart display
+    sorted_scores = sorted(game_state['scores'].items(), key=lambda x: x[1], reverse=True)
     
     return {
         'game_active': game_state['game_active'],
@@ -328,7 +343,8 @@ async def game_status():
         'in_intermission': game_state['in_intermission'],
         'show_answer': game_state['show_answer'],
         'answers_locked': game_state['answers_locked'],
-        'teams_count': len(game_state['teams'])
+        'teams_count': len(game_state['teams']),
+        'current_scores': sorted_scores  # Add scores to every status response
     }
 
 @app.post("/game/api/submit_answer")
