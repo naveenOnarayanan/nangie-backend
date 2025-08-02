@@ -78,7 +78,7 @@ function registerTeam() {
         return;
     }
     
-    fetch('/api/register_team', {
+    fetch('/game/api/register_team', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({team_name: teamName})
@@ -107,7 +107,7 @@ function startGamePolling() {
 }
 
 function updateGameStatus() {
-    fetch('/api/game_status')
+    fetch('/game/api/game_status')
     .then(response => response.json())
     .then(data => {
         document.getElementById('teamsCount').textContent = data.teams_count;
@@ -219,7 +219,7 @@ function selectOption(index, element) {
 function submitAnswer() {
     if (gameData.selectedAnswer === null) return;
     
-    fetch('/api/submit_answer', {
+    fetch('/game/api/submit_answer', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
@@ -246,7 +246,7 @@ function showResults() {
     document.getElementById('questionArea').style.display = 'none';
     document.getElementById('resultsArea').style.display = 'block';
     
-    fetch('/api/scores')
+    fetch('/game/api/scores')
     .then(response => response.json())
     .then(data => {
         const tbody = document.querySelector('#finalScores tbody');
