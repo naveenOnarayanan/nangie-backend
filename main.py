@@ -178,6 +178,29 @@ trivia_questions = [
         'options': ['Hello', 'I respect you', 'I bow to you', 'Let\'s eat'],
         'correct': 2,
         'points': 250
+    },
+    {
+        'category': 'Know the Couple',
+        'question': 'Where did the bride and groom meet?',
+        'options': ['At work', 'Through mutual friends', 'Online dating app', 'College'],
+        'correct': 2,  # Update with correct answer
+        'points': 300
+    },
+    {
+        'category': 'Know the Couple',
+        'question': 'Where did the proposal happen?',
+        'options': ['San Francisco', 'San Luis Obispo', 'San Diego', 'Santa Barbara'],
+        'correct': 1,
+        'points': 300
+    },
+
+    # Final Double or Nothing
+    {
+        'category': 'Double or Nothing',
+        'question': 'What exact date did the bride and groom meet?',
+        'options': ['April 26th, 2022', 'April 28th, 2022', 'May 2nd, 2022', 'April 30th, 2022'],
+        'correct': 1,
+        'points': 500  # or whatever max points you want
     }
 ]
 
