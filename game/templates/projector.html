@@ -356,29 +356,29 @@ function drawProjectorScoresChart(scores) {
     const canvas = document.getElementById('projectorScoresChart');
     const ctx = canvas.getContext('2d');
     
-    // Set fixed canvas size - smaller and more efficient
-    canvas.width = 1000;
-    canvas.height = 400;
+    // Set fixed canvas size - using full width for better visibility
+    canvas.width = 1200;
+    canvas.height = 500;
     
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     if (scores.length === 0) {
-        ctx.font = 'bold 20px Arial';
+        ctx.font = 'bold 32px Arial';
         ctx.fillStyle = '#333';
         ctx.textAlign = 'center';
         ctx.fillText('No scores yet!', canvas.width / 2, canvas.height / 2);
         return;
     }
     
-    // Compact chart settings
-    const padding = 25;
+    // Enhanced chart settings for projector visibility
+    const padding = 40;
     const chartWidth = canvas.width - (padding * 2);
     const chartHeight = canvas.height - (padding * 2);
-    const barHeight = Math.min(25, chartHeight / Math.min(scores.length, 8) - 5);
+    const barHeight = Math.min(45, chartHeight / Math.min(scores.length, 8) - 8);
     const maxScore = Math.max(...scores.map(s => s[1]), 1);
     
-    // Bright colors
+    // Bright colors for better projector visibility
     const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', '#54A0FF'];
     
     // Show top 8 teams
@@ -387,49 +387,79 @@ function drawProjectorScoresChart(scores) {
     topScores.forEach((score, index) => {
         const teamName = score[0];
         const teamScore = score[1];
-        const barWidth = Math.max(40, (teamScore / maxScore) * chartWidth * 0.6);
+        const barWidth = Math.max(80, (teamScore / maxScore) * chartWidth * 0.65);
         
-        const x = padding;
-        const y = padding + (index * (barHeight + 6));
+        const x = padding + 50; // More space for rank numbers
+        const y = padding + (index * (barHeight + 10));
         
-        // Draw bar background
+        // Draw bar background with thicker border
         ctx.fillStyle = '#f0f0f0';
-        ctx.fillRect(x, y, chartWidth * 0.6, barHeight);
+        ctx.fillRect(x, y, chartWidth * 0.65, barHeight);
+        ctx.strokeStyle = '#ddd';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x, y, chartWidth * 0.65, barHeight);
         
         // Draw colored bar
         const color = colors[index] || '#667eea';
         ctx.fillStyle = color;
         ctx.fillRect(x, y, barWidth, barHeight);
         
-        // Draw team name - shorter names
+        // Draw team name - much larger font
         ctx.fillStyle = '#333';
-        ctx.font = 'bold 12px Arial';
+        ctx.font = 'bold 20px Arial';
         ctx.textAlign = 'left';
-        const displayName = teamName.length > 10 ? teamName.substring(0, 10) + '...' : teamName;
-        ctx.fillText(displayName, x + 5, y + barHeight/2 + 4);
+        const displayName = teamName.length > 18 ? teamName.substring(0, 18) + '...' : teamName;
+        ctx.fillText(displayName, x + 10, y + barHeight/2 + 7);
         
-        // Draw score
+        // Draw score - much larger font
         ctx.fillStyle = '#333';
-        ctx.font = 'bold 14px Arial';
+        ctx.font = 'bold 24px Arial';
         ctx.textAlign = 'left';
-        ctx.fillText(teamScore, x + chartWidth * 0.65, y + barHeight/2 + 4);
+        ctx.fillText(teamScore + ' pts', x + chartWidth * 0.7, y + barHeight/2 + 8);
         
-        // Add small medal emoji for top 3
-        ctx.font = '14px Arial';
+        // Add larger medal emoji for top 3
+        ctx.font = '24px Arial';
         if (index === 0) {
-            ctx.fillText('👑', x + chartWidth * 0.75, y + barHeight/2 + 4);
+            ctx.fillText('👑', x + chartWidth * 0.85, y + barHeight/2 + 8);
         } else if (index === 1) {
-            ctx.fillText('🥈', x + chartWidth * 0.75, y + barHeight/2 + 4);
+            ctx.fillText('🥈', x + chartWidth * 0.85, y + barHeight/2 + 8);
         } else if (index === 2) {
-            ctx.fillText('🥉', x + chartWidth * 0.75, y + barHeight/2 + 4);
+            ctx.fillText('🥉', x + chartWidth * 0.85, y + barHeight/2 + 8);
         }
         
-        // Add rank number
-        ctx.fillStyle = '#666';
-        ctx.font = 'bold 11px Arial';
+        // Add larger rank number
+        ctx.fillStyle = '#333';
+        ctx.font = 'bold 22px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText(index + 1, x - 15, y + barHeight/2 + 4);
+        ctx.fillText(index + 1, x - 25, y + barHeight/2 + 8);
+        
+        // Add subtle gradient effect to bars for better visibility
+        const gradient = ctx.createLinearGradient(x, y, x, y + barHeight);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(1, adjustBrightness(color, -20));
+        ctx.fillStyle = gradient;
+        ctx.fillRect(x, y, barWidth, barHeight);
     });
+    
+    // Add title at the top
+    ctx.fillStyle = '#333';
+    ctx.font = 'bold 28px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('LEADERBOARD', canvas.width / 2, 35);
+}
+
+// Helper function to adjust color brightness
+function adjustBrightness(color, amount) {
+    const usePound = color[0] === '#';
+    const col = usePound ? color.slice(1) : color;
+    const num = parseInt(col, 16);
+    let r = (num >> 16) + amount;
+    let g = (num >> 8 & 0x00FF) + amount;
+    let b = (num & 0x0000FF) + amount;
+    r = r > 255 ? 255 : r < 0 ? 0 : r;
+    g = g > 255 ? 255 : g < 0 ? 0 : g;
+    b = b > 255 ? 255 : b < 0 ? 0 : b;
+    return (usePound ? '#' : '') + (r << 16 | g << 8 | b).toString(16).padStart(6, '0');
 }
 
 function showProjectorQuestion(question, timeRemaining, showAnswer) {
