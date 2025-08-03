@@ -14,79 +14,93 @@
     
     .projector-container {
         max-width: 100vw;
-        min-height: 100vh;
-        padding: 40px;
+        height: 100vh;
+        padding: 2vh 2vw;
         text-align: center;
         display: flex;
         flex-direction: column;
         justify-content: center;
+        box-sizing: border-box;
     }
     
     .projector-title {
-        font-size: 4em;
-        margin-bottom: 40px;
+        font-size: clamp(2em, 6vw, 4em);
+        margin-bottom: clamp(20px, 3vh, 40px);
         text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
         color: white;
+        flex-shrink: 0;
     }
     
     .projector-question {
         background: rgba(255, 255, 255, 0.95);
         color: #333;
         border-radius: 30px;
-        padding: 60px;
-        margin: 20px 0;
-        min-height: 500px;
+        padding: clamp(20px, 4vh, 60px) clamp(20px, 3vw, 60px);
+        margin: clamp(10px, 2vh, 20px) 0;
+        height: auto;
+        max-height: 80vh;
         display: flex;
         flex-direction: column;
         justify-content: center;
         box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        overflow-y: auto;
+        flex: 1;
     }
     
     .projector-category {
         background: linear-gradient(45deg, #667eea, #764ba2);
         color: white;
-        padding: 20px 40px;
+        padding: clamp(10px, 2vh, 20px) clamp(20px, 3vw, 40px);
         border-radius: 25px;
-        font-size: 1.8em;
+        font-size: clamp(1em, 3vw, 1.8em);
         display: inline-block;
-        margin-bottom: 40px;
+        margin-bottom: clamp(20px, 3vh, 40px);
         font-weight: bold;
         text-transform: uppercase;
         letter-spacing: 2px;
+        flex-shrink: 0;
     }
     
     .projector-question-text {
-        font-size: 3.5em;
+        font-size: clamp(1.5em, 5vw, 3.5em);
         font-weight: bold;
         color: #333;
-        margin: 40px 0;
+        margin: clamp(20px, 3vh, 40px) 0;
         line-height: 1.2;
+        flex-shrink: 1;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        hyphens: auto;
     }
     
     .projector-options {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 30px;
-        margin: 50px 0;
-        max-width: 1000px;
+        gap: clamp(15px, 2vw, 30px);
+        margin: clamp(25px, 4vh, 50px) 0;
+        max-width: 90vw;
         margin-left: auto;
         margin-right: auto;
+        flex-shrink: 0;
     }
     
     .projector-option {
         background: #f8f9fa;
         border: 4px solid #dee2e6;
-        padding: 40px;
+        padding: clamp(15px, 3vh, 40px) clamp(10px, 2vw, 20px);
         border-radius: 20px;
-        font-size: 1.8em;
+        font-size: clamp(1em, 2.5vw, 1.8em);
         font-weight: bold;
         color: #333;
         transition: all 0.5s ease;
-        min-height: 120px;
+        min-height: clamp(60px, 8vh, 120px);
         display: flex;
         align-items: center;
         justify-content: center;
         text-align: center;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        hyphens: auto;
     }
     
     .projector-option.correct {
@@ -104,12 +118,13 @@
     }
     
     .projector-timer {
-        font-size: 6em;
+        font-size: clamp(3em, 8vw, 6em);
         font-weight: bold;
         color: #ff6b6b;
-        margin: 30px 0;
+        margin: clamp(15px, 2vh, 30px) 0;
         text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
         font-family: 'Courier New', monospace;
+        flex-shrink: 0;
     }
     
     .projector-timer.warning {
@@ -195,26 +210,40 @@
     }
     
     @media (max-width: 1200px) {
-        .projector-question-text {
-            font-size: 2.5em;
-        }
-        
         .projector-options {
             grid-template-columns: 1fr;
+            gap: clamp(10px, 2vh, 20px);
+        }
+        
+        .projector-option {
+            min-height: clamp(50px, 6vh, 80px);
+        }
+    }
+    
+    @media (max-height: 600px) {
+        .projector-container {
+            padding: 1vh 2vw;
+        }
+        
+        .projector-question {
+            padding: clamp(10px, 2vh, 30px) clamp(15px, 2vw, 40px);
+            max-height: 85vh;
+        }
+        
+        .projector-question-text {
+            font-size: clamp(1.2em, 4vw, 2.5em);
+            margin: clamp(10px, 2vh, 20px) 0;
         }
         
         .projector-timer {
-            font-size: 4em;
-        }
-        
-        .projector-title {
-            font-size: 3em;
+            font-size: clamp(2em, 6vw, 4em);
+            margin: clamp(10px, 1vh, 15px) 0;
         }
     }
 </style>
 
 <div class="projector-container">
-    <h1 class="projector-title">🎉 Navneet & Angie's Wedding Trivia 🎉</h1>
+
     
     <div id="waitingDisplay" class="projector-waiting">
         <h2 style="font-size: 3em; margin-bottom: 30px; color: #333 !important">⏳ Waiting for next question...</h2>
