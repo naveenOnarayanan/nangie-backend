@@ -62,7 +62,7 @@
     }
     
     .projector-question-text {
-        font-size: clamp(1.5em, 5vw, 3.5em);
+        font-size: 1.5em !important;
         font-weight: bold;
         color: #333;
         margin: clamp(20px, 3vh, 40px) 0;
@@ -399,10 +399,19 @@ function drawProjectorScoresChart(scores) {
         ctx.lineWidth = 2;
         ctx.strokeRect(x, y, chartWidth * 0.65, barHeight);
         
-        // Draw colored bar
+        // Draw colored bar with gradient
         const color = colors[index] || '#667eea';
-        ctx.fillStyle = color;
+        const gradient = ctx.createLinearGradient(x, y, x, y + barHeight);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(1, adjustBrightness(color, -20));
+        ctx.fillStyle = gradient;
         ctx.fillRect(x, y, barWidth, barHeight);
+        
+        // Add larger rank number
+        ctx.fillStyle = '#333';
+        ctx.font = 'bold 22px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(index + 1, x - 25, y + barHeight/2 + 8);
         
         // Draw team name - much larger font
         ctx.fillStyle = '#333';
@@ -426,19 +435,6 @@ function drawProjectorScoresChart(scores) {
         } else if (index === 2) {
             ctx.fillText('🥉', x + chartWidth * 0.85, y + barHeight/2 + 8);
         }
-        
-        // Add larger rank number
-        ctx.fillStyle = '#333';
-        ctx.font = 'bold 22px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(index + 1, x - 25, y + barHeight/2 + 8);
-        
-        // Add subtle gradient effect to bars for better visibility
-        const gradient = ctx.createLinearGradient(x, y, x, y + barHeight);
-        gradient.addColorStop(0, color);
-        gradient.addColorStop(1, adjustBrightness(color, -20));
-        ctx.fillStyle = gradient;
-        ctx.fillRect(x, y, barWidth, barHeight);
     });
     
     // Add title at the top
