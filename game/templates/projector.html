@@ -138,7 +138,7 @@
     }
     
     .projector-status {
-        font-size: 2.5em;
+        font-size: 0.5em;
         margin: 40px 0;
         color: #fff;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
@@ -167,6 +167,7 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
+        width: 90%;
         min-height: 500px;
     }
     
@@ -203,7 +204,7 @@
         padding: 30px;
         border-radius: 15px;
         margin: 30px 0;
-        font-size: 1.5em;
+        font-size: 1em;
         font-weight: bold;
         text-transform: uppercase;
         letter-spacing: 1px;
@@ -275,7 +276,7 @@
     
     <div id="scoresDisplay" style="display: none;">
         <div class="projector-scores">
-            <h2 style="font-size: 3.5em; margin-bottom: 40px; color: #333 !important">📊 Current Leaderboard</h2>
+            <h2 style="font-size: 2.0em; margin-bottom: 40px; color: #333 !important">📊 Current Leaderboard</h2>
             <div id="projectorAnswerReveal" class="answer-reveal" style="margin-bottom: 40px;"></div>
             <canvas id="projectorScoresChart" width="1000" height="600" style="background: white; border-radius: 20px; margin: 20px 0;"></canvas>
             <div class="projector-status">
@@ -356,8 +357,8 @@ function drawProjectorScoresChart(scores) {
     const ctx = canvas.getContext('2d');
     
     // Set fixed canvas size - smaller and more efficient
-    canvas.width = 600;
-    canvas.height = 250;
+    canvas.width = 1000;
+    canvas.height = 400;
     
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
